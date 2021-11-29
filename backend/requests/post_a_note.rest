@@ -2,7 +2,7 @@ POST http://localhost:3001/api/notes/
 content-type: application/json
 
 {
-    "content": "new note from vscode",
-    "date": "2021-11-28T19:20:14.298Z",
-    "important": "false"
+    "content": "s",
+		"important": true
+
 }
