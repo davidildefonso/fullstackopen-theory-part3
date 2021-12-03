@@ -19,54 +19,38 @@ app.use(express.static('build'));
 
 
 
-
-// let notes = [
-//   {
-//     id: 1,
-//     content: "HTML is easy",
-//     date: "2019-05-30T17:30:31.098Z",
-//     important: true
-//   },
-//   {
-//     id: 2,
-//     content: "Browser can execute only Javascript",
-//     date: "2019-05-30T18:39:34.091Z",
-//     important: false
-//   },
-//   {
-//     id: 3,
-//     content: "GET and POST are the most important methods of HTTP protocol",
-//     date: "2019-05-30T19:20:14.298Z",
-//     important: true
-//   }
-// ];
+app.get("/", (request, response, next ) => {
+		try{
+				response.send("<h1>Hello world</h1>");
+		}catch(error){
+			 next(error) ;
+		}
 
 
-app.get("/", (request, response ) => {
-		response.send("<h1>Hello world</h1>");
+
 });
 
-app.get("/api/notes", (request, response) => {
+app.get("/api/notes", (request, response, next) => {
 	
 		
 		Note.find({}).then(notes => {
 				response.json(notes);
 			
-		})
+		}).catch(error => next(error) );
 });
 
-app.get('/api/notes/:id', (request, response) => {
+app.get('/api/notes/:id', (request, response, next) => {
  
 
 	Note.findById(request.params.id).then(note => {
     response.json(note)
-  })
+  }).catch(error => next(error) );
 
 
 });
 
 
-app.delete('/api/notes/:id', (request, response) => {
+app.delete('/api/notes/:id', (request, response, next) => {
 
 		Note.findById(request.params.id)
 			.then(note => {
@@ -80,13 +64,9 @@ app.delete('/api/notes/:id', (request, response) => {
 							if (err) return console.log(err);
 							response.status(204).end();
 						});
-						
-			}).catch(error => {
-					console.log(error)
-					return response.status(400).json({ 
-						error: 'an error ocurred' 
-					});
-			})
+
+			}).catch(error => next(error) );
+	
 
 
 
@@ -94,16 +74,9 @@ app.delete('/api/notes/:id', (request, response) => {
 });
 
 
-// const generateId = () => {
-//   const maxId = notes.length > 0
-//     ? Math.max(...notes.map(n => n.id))
-//     : 0
-//   return maxId + 1
-// }
 
 
-
-app.post('/api/notes', (request, response) => {
+app.post('/api/notes', (request, response, next) => {
 		const body = request.body;
 
 		if (!body.content) {
@@ -122,13 +95,13 @@ app.post('/api/notes', (request, response) => {
 
 		note.save().then(savedNote => {
 			response.json(savedNote)
-		});
+		}).catch(error => next(error) );
 
 })
 
 
 
-app.put('/api/notes/:id', (request, response) => {
+app.put('/api/notes/:id', (request, response, next) => {
 
 
 
@@ -151,17 +124,24 @@ app.put('/api/notes/:id', (request, response) => {
 									response.json(note)
 						})
 
-			}).catch(error => {
-					console.log(error)
-					return response.status(400).json({ 
-						error: 'an error ocurred' 
-					});
-			})
+			}).catch(error => next(error) );
+			
 
-	
+});
 
-})
 
+
+const errorHandler = (error, request, response, next) => {
+  console.error(error.message)
+
+  if (error.name === 'CastError') {
+    return response.status(400).send({ error: 'malformatted id' })
+  } 
+
+  next(error);
+}
+
+app.use(errorHandler);
 
 
 
